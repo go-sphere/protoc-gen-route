@@ -1,5 +1,5 @@
-github.com/go-sphere/options v0.0.0-20250828072151-d28157ecb0d9 h1:3V+FF+IW5A03/p0pRxcGyLJmOL0sIPGLj5+ofAHiD5A=
-github.com/go-sphere/options v0.0.0-20250828072151-d28157ecb0d9/go.mod h1:5UC9Sr5iQFuXZF+AbRi1I64St9K5hgQGefriZdoNf4U=
+github.com/go-sphere/options v0.0.1 h1:UmctzcFlkkbpl/AX8zJchZBeCPW01JfbGpkWS+XirGo=
+github.com/go-sphere/options v0.0.1/go.mod h1:5UC9Sr5iQFuXZF+AbRi1I64St9K5hgQGefriZdoNf4U=
 github.com/google/go-cmp v0.5.5 h1:Khx7svrCpmxxtHBq5j2mp/xVjsi8hQMfNLvJFAlrGgU=
 github.com/google/go-cmp v0.5.5/go.mod h1:v8dTdLbMG2kIc/vJvl+f65V22dbkXbowE6jgT/gNBxE=
 golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543 h1:E7g+9GITq07hpfrRu66IVDexMakfv52eLZ2CXBWiKr4=
