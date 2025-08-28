@@ -8,7 +8,7 @@
 To install `protoc-gen-route`, use the following command:
 
 ```bash
-go install github.com/TBXark/sphere/cmd/protoc-gen-route@latest
+go install github.com/go-sphere/protoc-gen-route@latest
 ```
 
 
@@ -36,7 +36,7 @@ managed:
   enabled: true
   disable:
     - file_option: go_package_prefix
-      module: buf.build/tbxark/options
+      module: buf.build/go-sphere/options
 plugins:
   - local: protoc-gen-go
     out: api
@@ -47,10 +47,10 @@ plugins:
       - paths=source_relative
       - options_key=bot
       - file_suffix=_bot.pb.go
-      - request_model=github.com/TBXark/sphere/social/telegram;Update
-      - response_model=github.com/TBXark/sphere/social/telegram;Message
-      - extra_data_model=github.com/TBXark/sphere/social/telegram;MethodExtraData
-      - extra_data_constructor=github.com/TBXark/sphere/social/telegram;NewMethodExtraData
+      - request_model=github.com/go-sphere/sphere/social/telegram;Update
+      - response_model=github.com/go-sphere/sphere/social/telegram;Message
+      - extra_data_model=github.com/go-sphere/sphere/social/telegram;MethodExtraData
+      - extra_data_constructor=github.com/go-sphere/sphere/social/telegram;NewMethodExtraData
 ```
 
 You will also need to configure the `protoc-gen-route` plugin in your `buf.gen.yaml` so that `buf` knows how to execute it.
