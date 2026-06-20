@@ -86,16 +86,14 @@ service MenuService {
   rpc UpdateCount(UpdateCountRequest) returns (UpdateCountResponse) {
     option (sphere.options.options) = {
       key: "bot"
-      extra: [
-        {
-          key: "command"
-          value: "start"
-        },
-        {
-          key: "callback_query"
-          value: "start"
-        }
-      ]
+      extra: {
+        key: "command"
+        value: "start"
+      }
+      extra: {
+        key: "callback_query"
+        value: "start"
+      }
     };
   }
   
@@ -103,12 +101,10 @@ service MenuService {
   rpc ProcessMenu(ProcessMenuRequest) returns (ProcessMenuResponse) {
     option (sphere.options.options) = {
       key: "bot"
-      extra: [
-        {
-          key: "callback_query"
-          value: "menu_.*"
-        }
-      ]
+      extra: {
+        key: "callback_query"
+        value: "menu_.*"
+      }
     };
   }
 }
@@ -441,16 +437,14 @@ service UserService {
   rpc GetUser(GetUserRequest) returns (GetUserResponse) {
     option (sphere.options.options) = {
       key: "http"
-      extra: [
-        {
-          key: "method"
-          value: "GET"
-        },
-        {
-          key: "path"
-          value: "/users/{id}"
-        }
-      ]
+      extra: {
+        key: "method"
+        value: "GET"
+      }
+      extra: {
+        key: "path"
+        value: "/users/{id}"
+      }
     };
   }
 }
@@ -463,24 +457,20 @@ service BotService {
   rpc HandleStart(StartRequest) returns (StartResponse) {
     option (sphere.options.options) = {
       key: "bot"
-      extra: [
-        {
-          key: "command"
-          value: "start"
-        }
-      ]
+      extra: {
+        key: "command"
+        value: "start"
+      }
     };
   }
   
   rpc HandleMenu(MenuRequest) returns (MenuResponse) {
     option (sphere.options.options) = {
       key: "bot"
-      extra: [
-        {
-          key: "callback_query"
-          value: "menu_.*"
-        }
-      ]
+      extra: {
+        key: "callback_query"
+        value: "menu_.*"
+      }
     };
   }
 }
