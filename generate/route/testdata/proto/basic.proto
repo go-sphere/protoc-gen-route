@@ -1,0 +1,60 @@
+syntax = "proto3";
+
+package testdata.basic.v1;
+
+import "sphere/options/options.proto";
+
+option go_package = "github.com/go-sphere/protoc-gen-route/generate/route/testdata/gen/basicv1;basicv1";
+
+// MenuService manages bot menu commands.
+service MenuService {
+  // UpdateCount updates the menu counter.
+  // It is triggered by the start command.
+  rpc UpdateCount(UpdateCountRequest) returns (UpdateCountResponse) {
+    option (sphere.options.options) = {
+      key: "route"
+      extra: {
+        key: "command"
+        value: "start"
+      }
+      extra: {
+        key: "callback_query"
+        value: "start"
+      }
+    };
+  }
+
+  // GetMenu returns the menu and carries a route rule without extra data.
+  rpc GetMenu(GetMenuRequest) returns (GetMenuResponse) {
+    option (sphere.options.options) = {
+      key: "route"
+    };
+  }
+
+  // Ping has no route option and must be skipped.
+  rpc Ping(PingRequest) returns (PingResponse);
+}
+
+message UpdateCountRequest {
+  string id = 1;
+}
+
+message UpdateCountResponse {
+  int64 count = 1;
+}
+
+message GetMenuRequest {
+  string id = 1;
+}
+
+message GetMenuResponse {
+  string title = 1;
+}
+
+message PingRequest {
+  string msg = 1;
+}
+
+message PingResponse {
+  string msg = 1;
+}

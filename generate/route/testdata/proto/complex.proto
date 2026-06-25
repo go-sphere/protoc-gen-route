@@ -1,0 +1,79 @@
+syntax = "proto3";
+
+package testdata.complex.v1;
+
+import "sphere/options/options.proto";
+
+option go_package = "github.com/go-sphere/protoc-gen-route/generate/route/testdata/gen/complexv1;complexv1";
+
+// OrderService exercises streaming skip and multi-service Num disambiguation.
+service OrderService {
+  // Create is a unary method with a route rule.
+  rpc Create(CreateOrderRequest) returns (CreateOrderResponse) {
+    option (sphere.options.options) = {
+      key: "route"
+    };
+  }
+
+  // Watch is a server-streaming method and must be skipped even with a rule.
+  rpc Watch(WatchOrderRequest) returns (stream WatchOrderResponse) {
+    option (sphere.options.options) = {
+      key: "route"
+    };
+  }
+}
+
+// UserService shares the "Create" method name to exercise Num disambiguation
+// within a single generated file.
+service UserService {
+  // Create is a second method with the same GoName as OrderService.Create.
+  rpc Create(CreateUserRequest) returns (CreateUserResponse) {
+    option (sphere.options.options) = {
+      key: "route"
+      extra: {
+        key: "scope"
+        value: "user"
+      }
+    };
+  }
+
+  // Delete only carries a rule under the "bot" key; it is skipped when
+  // generating the default "route" key but generated for a "bot" run.
+  rpc Delete(DeleteUserRequest) returns (DeleteUserResponse) {
+    option (sphere.options.options) = {
+      key: "bot"
+    };
+  }
+}
+
+message CreateOrderRequest {
+  string id = 1;
+}
+
+message CreateOrderResponse {
+  string id = 1;
+}
+
+message WatchOrderRequest {
+  string id = 1;
+}
+
+message WatchOrderResponse {
+  string id = 1;
+}
+
+message CreateUserRequest {
+  string name = 1;
+}
+
+message CreateUserResponse {
+  string name = 1;
+}
+
+message DeleteUserRequest {
+  string id = 1;
+}
+
+message DeleteUserResponse {
+  bool ok = 1;
+}

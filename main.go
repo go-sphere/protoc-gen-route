@@ -1,13 +1,10 @@
 package main
 
 import (
-	"errors"
 	"flag"
 	"fmt"
-	"strings"
 
 	"github.com/go-sphere/protoc-gen-route/generate/route"
-	"github.com/go-sphere/protoc-gen-route/generate/template"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/types/pluginpb"
 )
@@ -39,7 +36,7 @@ func main() {
 			return err
 		}
 		gen.SupportedFeatures = uint64(pluginpb.CodeGeneratorResponse_FEATURE_PROTO3_OPTIONAL)
-		err = template.ReplaceTemplateIfNeed(conf.TemplateFile)
+		err = route.ReplaceTemplateIfNeed(conf.TemplateFile)
 		if err != nil {
 			return err
 		}
@@ -56,23 +53,12 @@ func main() {
 	})
 }
 
-func parseGoIdent(raw string) (protogen.GoIdent, error) {
-	parts := strings.Split(raw, ";")
-	if len(parts) != 2 {
-		return protogen.GoIdent{}, errors.New("invalid GoIdent format, expected 'path;ident'")
-	}
-	return protogen.GoIdent{
-		GoName:       parts[1],
-		GoImportPath: protogen.GoImportPath(parts[0]),
-	}, nil
-}
-
 func extractConfig() (*route.Config, error) {
-	_requestModel, err := parseGoIdent(*requestModel)
+	_requestModel, err := route.ParseGoIdent(*requestModel)
 	if err != nil {
 		return nil, err
 	}
-	_responseModel, err := parseGoIdent(*responseModel)
+	_responseModel, err := route.ParseGoIdent(*responseModel)
 	if err != nil {
 		return nil, err
 	}
@@ -89,11 +75,11 @@ func extractConfig() (*route.Config, error) {
 		return conf, nil
 	}
 
-	_extraDataModel, err := parseGoIdent(*extraDataModel)
+	_extraDataModel, err := route.ParseGoIdent(*extraDataModel)
 	if err != nil {
 		return nil, err
 	}
-	_extraDataConstructor, err := parseGoIdent(*extraDataConstructor)
+	_extraDataConstructor, err := route.ParseGoIdent(*extraDataConstructor)
 	if err != nil {
 		return nil, err
 	}

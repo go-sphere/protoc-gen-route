@@ -1,0 +1,12 @@
+version: v2
+modules:
+  - path: proto
+deps:
+  - buf.build/go-sphere/options
+lint:
+  use:
+    - STANDARD
+  rpc_allow_same_request_response: true
+breaking:
+  use:
+    - FILE

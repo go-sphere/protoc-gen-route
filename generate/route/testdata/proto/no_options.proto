@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package testdata.nooptions.v1;
+
+option go_package = "github.com/go-sphere/protoc-gen-route/generate/route/testdata/gen/nooptionsv1;nooptionsv1";
+
+// PlainService has methods but no (sphere.options.options) rules, so no file is
+// generated for any options key.
+service PlainService {
+  rpc Do(DoRequest) returns (DoResponse);
+}
+
+message DoRequest {
+  string input = 1;
+}
+
+message DoResponse {
+  string output = 1;
+}
