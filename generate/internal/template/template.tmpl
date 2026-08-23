@@ -19,7 +19,7 @@ const Operation{{$optionsKey}}{{$svrType}}{{.OriginalName}} = "/{{$svrName}}/{{.
     {{- if .Extra}}
 var Extra{{$optionsKey}}Data{{$svrType}}{{.Name}} = {{$newExtraDataFunc}}(map[string]string{
     {{- range $key, $value := .Extra}}
-    "{{$key}}": "{{$value}}",
+    {{ goString $key }}: {{ goString $value }},
     {{- end}}
 })
     {{- end}}

@@ -3,6 +3,7 @@ package template
 import (
 	_ "embed"
 	"os"
+	"strconv"
 	"strings"
 	"text/template"
 )
@@ -68,7 +69,9 @@ func (s *ServiceDesc) Execute() (string, error) {
 		s.MethodSets[m.Name] = m
 	}
 	var buf strings.Builder
-	tmpl, err := template.New("route").Parse(routeTemplate)
+	tmpl, err := template.New("route").Funcs(template.FuncMap{
+		"goString": strconv.Quote,
+	}).Parse(routeTemplate)
 	if err != nil {
 		return "", err
 	}
