@@ -63,10 +63,10 @@ plugins:
       - paths=source_relative
       - options_key=bot
       - file_suffix=_bot.pb.go
-      - request_model=github.com/go-sphere/sphere/social/telegram;Update
-      - response_model=github.com/go-sphere/sphere/social/telegram;Message
-      - extra_data_model=github.com/go-sphere/sphere/social/telegram;MethodExtraData
-      - extra_data_constructor=github.com/go-sphere/sphere/social/telegram;NewMethodExtraData
+      - request_model=github.com/go-sphere/telegram-bot/telegram;Update
+      - response_model=github.com/go-sphere/telegram-bot/telegram;Message
+      - extra_data_model=github.com/go-sphere/telegram-bot/telegram;MethodExtraData
+      - extra_data_constructor=github.com/go-sphere/telegram-bot/telegram;NewMethodExtraData
 ```
 
 ## Proto Definition Example
@@ -360,10 +360,10 @@ plugins:
       - paths=source_relative
       - options_key=bot
       - file_suffix=_bot.pb.go
-      - request_model=github.com/go-sphere/sphere/social/telegram;Update
-      - response_model=github.com/go-sphere/sphere/social/telegram;Message
-      - extra_data_model=github.com/go-sphere/sphere/social/telegram;MethodExtraData
-      - extra_data_constructor=github.com/go-sphere/sphere/social/telegram;NewMethodExtraData
+      - request_model=github.com/go-sphere/telegram-bot/telegram;Update
+      - response_model=github.com/go-sphere/telegram-bot/telegram;Message
+      - extra_data_model=github.com/go-sphere/telegram-bot/telegram;MethodExtraData
+      - extra_data_constructor=github.com/go-sphere/telegram-bot/telegram;NewMethodExtraData
 ```
 
 ### gRPC Gateway Router
@@ -386,8 +386,8 @@ The route plugin works seamlessly with other sphere components:
 
 - **protoc-gen-sphere**: HTTP handlers can be generated alongside route handlers
 - **protoc-gen-sphere-errors**: Error handling integrates with route handlers
-- **sphere/social/telegram**: Built-in support for Telegram bot routing
-- **sphere/server/ginx**: HTTP routing integration with Gin framework
+- **telegram-bot/telegram**: Official Telegram bot types used by the layout `options_key=bot` example
+- **httpx / httpz**: HTTP routing integration; adapters wrap Gin, Fiber, Echo, or Hertz
 - **sphere/options**: Core options framework for route configuration
 
 ## Advanced Features
@@ -424,8 +424,8 @@ plugins:
     opt:
       - options_key=bot
       - file_suffix=_bot.pb.go
-      - request_model=github.com/go-sphere/sphere/social/telegram;Update
-      - response_model=github.com/go-sphere/sphere/social/telegram;Message
+      - request_model=github.com/go-sphere/telegram-bot/telegram;Update
+      - response_model=github.com/go-sphere/telegram-bot/telegram;Message
 ```
 
 ## Best Practices
