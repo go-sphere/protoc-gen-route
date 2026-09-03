@@ -54,9 +54,15 @@ func main() {
 }
 
 func extractConfig() (*route.Config, error) {
+	if *requestModel == "" {
+		return nil, fmt.Errorf("request_model is required (format: 'import/path;ModelName')")
+	}
 	_requestModel, err := route.ParseGoIdent(*requestModel)
 	if err != nil {
 		return nil, err
+	}
+	if *responseModel == "" {
+		return nil, fmt.Errorf("response_model is required (format: 'import/path;ModelName')")
 	}
 	_responseModel, err := route.ParseGoIdent(*responseModel)
 	if err != nil {
@@ -72,7 +78,13 @@ func extractConfig() (*route.Config, error) {
 	}
 
 	if *extraDataModel == "" {
+		if *extraDataConstructor != "" {
+			return nil, fmt.Errorf("extra_data_model is required when extra_data_constructor is specified")
+		}
 		return conf, nil
+	}
+	if *extraDataConstructor == "" {
+		return nil, fmt.Errorf("extra_data_constructor is required when extra_data_model is specified")
 	}
 
 	_extraDataModel, err := route.ParseGoIdent(*extraDataModel)
