@@ -68,6 +68,9 @@ func extractConfig() (*route.Config, error) {
 	if err != nil {
 		return nil, err
 	}
+	if *optionsKey == "" {
+		return nil, fmt.Errorf("options_key is required")
+	}
 
 	conf := &route.Config{
 		OptionsKey:   *optionsKey,
