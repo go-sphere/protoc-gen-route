@@ -35,7 +35,7 @@ func TestGenerateFile_NoService(t *testing.T) {
 	}
 	plugin := newPlugin(t, fd)
 
-	genFile, err := GenerateFile(plugin, plugin.Files[0], DefaultConfig())
+	genFile, err := GenerateFile(plugin, plugin.Files[0], testConfig())
 	if err != nil {
 		t.Fatalf("GenerateFile failed: %v", err)
 	}
@@ -57,7 +57,7 @@ func TestGenerateFile_EmptyService(t *testing.T) {
 	}
 	plugin := newPlugin(t, fd)
 
-	genFile, err := GenerateFile(plugin, plugin.Files[0], DefaultConfig())
+	genFile, err := GenerateFile(plugin, plugin.Files[0], testConfig())
 	if err != nil {
 		t.Fatalf("GenerateFile failed: %v", err)
 	}
@@ -92,11 +92,26 @@ func TestGenerateFile_NoOptions(t *testing.T) {
 	}
 	plugin := newPlugin(t, fd)
 
-	genFile, err := GenerateFile(plugin, plugin.Files[0], DefaultConfig())
+	genFile, err := GenerateFile(plugin, plugin.Files[0], testConfig())
 	if err != nil {
 		t.Fatalf("GenerateFile failed: %v", err)
 	}
 	if genFile != nil {
 		t.Error("expected nil for service without options, got non-nil")
+	}
+}
+
+func TestNewGeneratorSnapshotsConfig(t *testing.T) {
+	cfg := testConfig()
+	generator, err := NewGenerator(cfg)
+	if err != nil {
+		t.Fatalf("NewGenerator() error = %v", err)
+	}
+	cfg.OptionsKey = "changed"
+	if generator.cfg.OptionsKey != DefaultOptionsKey {
+		t.Fatalf("Generator OptionsKey = %q after caller mutation", generator.cfg.OptionsKey)
+	}
+	if _, err := NewGenerator(nil); err == nil {
+		t.Fatal("NewGenerator(nil) error = nil")
 	}
 }

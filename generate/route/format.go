@@ -40,6 +40,18 @@ func formatFileHeader(version, sourcePath, pkgName string, deprecated bool) []st
 	return lines
 }
 
+func generateFileHeader(plugin *protogen.Plugin, file *protogen.File, g *protogen.GeneratedFile) {
+	lines := formatFileHeader(
+		formatProtocVersion(plugin.Request.GetCompilerVersion()),
+		file.Desc.Path(),
+		string(file.GoPackageName),
+		file.Proto.GetOptions().GetDeprecated(),
+	)
+	for _, line := range lines {
+		g.P(line)
+	}
+}
+
 // formatMethodComment formats a method's leading proto comment into Go doc
 // comment lines, prefixing the first line with the method name. Empty input
 // yields an empty string.
@@ -84,7 +96,7 @@ func pascalCase(s string) string {
 // newRefs are emitted as `var _ = new(ident)` and exprRefs as `var _ = ident`.
 // Idents with an empty name or import path are skipped, and each import path is
 // referenced at most once (deduplicated across both groups).
-func importKeepAlives(conf *Config) (newRefs []protogen.GoIdent, exprRefs []protogen.GoIdent) {
+func importKeepAlives(cfg *Config) (newRefs []protogen.GoIdent, exprRefs []protogen.GoIdent) {
 	seen := make(map[protogen.GoImportPath]bool)
 	add := func(dst *[]protogen.GoIdent, id protogen.GoIdent) {
 		if id.GoName == "" || id.GoImportPath == "" {
@@ -96,9 +108,9 @@ func importKeepAlives(conf *Config) (newRefs []protogen.GoIdent, exprRefs []prot
 		seen[id.GoImportPath] = true
 		*dst = append(*dst, id)
 	}
-	add(&newRefs, conf.RequestType)
-	add(&newRefs, conf.ResponseType)
-	add(&newRefs, conf.ExtraType)
-	add(&exprRefs, conf.ExtraConstructor)
+	add(&newRefs, cfg.RequestType)
+	add(&newRefs, cfg.ResponseType)
+	add(&newRefs, cfg.ExtraType)
+	add(&exprRefs, cfg.ExtraConstructor)
 	return newRefs, exprRefs
 }

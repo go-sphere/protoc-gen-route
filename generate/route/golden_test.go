@@ -48,7 +48,7 @@ func goldenCases() []goldenCase {
 			wantFile:   true,
 			goldenFile: "testdata/golden/basic_no_extra.route.pb.go",
 			config: func() *Config {
-				c := DefaultConfig()
+				c := testConfig()
 				c.ExtraType = protogen.GoIdent{}
 				c.ExtraConstructor = protogen.GoIdent{}
 				return c
@@ -63,7 +63,7 @@ func goldenCases() []goldenCase {
 			wantFile:   true,
 			goldenFile: "testdata/golden/custom_key.route.pb.go",
 			config: func() *Config {
-				c := DefaultConfig()
+				c := testConfig()
 				c.OptionsKey = "bot"
 				return c
 			},
@@ -85,7 +85,7 @@ func (tt goldenCase) generate(t *testing.T) []byte {
 	plugin := testutil.MustCreatePlugin(t, set, tt.protoName)
 	file := testutil.FileToGenerate(t, plugin)
 
-	cfg := DefaultConfig()
+	cfg := testConfig()
 	if tt.config != nil {
 		cfg = tt.config()
 	}

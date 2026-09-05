@@ -13,15 +13,6 @@ const (
 	// (sphere.options.options) extension. Only methods carrying a rule with this
 	// key are turned into route code.
 	DefaultOptionsKey = "route"
-
-	// Example GoIdent flag values, in "import/path;Ident" format, mirroring the
-	// telegram bot setup documented in the README. They are not real defaults for
-	// main.go (request/response models are required there) but give DefaultConfig
-	// representative values so golden output matches a realistic invocation.
-	exampleRequestType      = "github.com/go-sphere/sphere/social/telegram;Update"
-	exampleResponseType     = "github.com/go-sphere/sphere/social/telegram;Message"
-	exampleExtraType        = "github.com/go-sphere/sphere/social/telegram;MethodExtraData"
-	exampleExtraConstructor = "github.com/go-sphere/sphere/social/telegram;NewMethodExtraData"
 )
 
 // Config holds the user-facing options for the route generator. It is populated
@@ -36,9 +27,9 @@ type Config struct {
 	ExtraConstructor protogen.GoIdent
 }
 
-// genConfig holds the per-file generation state derived from Config. It is
+// fileConfig holds the per-file generation state derived from Config. It is
 // internal to the package and scoped to a single generated file.
-type genConfig struct {
+type fileConfig struct {
 	optionsKey  string
 	packageDesc *template.PackageDesc
 	// methodSets tracks the per-file duplicate count for each method GoName so
@@ -48,35 +39,53 @@ type genConfig struct {
 	methodSets map[string]int
 }
 
-// ParseGoIdent parses a "import/path;Ident" string into a protogen.GoIdent.
+// ParseGoIdent parses an "import/path;Ident" string into a protogen.GoIdent.
 func ParseGoIdent(raw string) (protogen.GoIdent, error) {
-	parts := strings.Split(raw, ";")
-	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
-		return protogen.GoIdent{}, errors.New("invalid GoIdent format, expected 'path;ident'")
+	importPath, goName, ok := strings.Cut(raw, ";")
+	if !ok || importPath == "" || goName == "" || strings.Contains(goName, ";") {
+		return protogen.GoIdent{}, errors.New("invalid GoIdent format, expected 'import/path;Ident'")
 	}
 	return protogen.GoIdent{
-		GoName:       parts[1],
-		GoImportPath: protogen.GoImportPath(parts[0]),
+		GoName:       goName,
+		GoImportPath: protogen.GoImportPath(importPath),
 	}, nil
 }
 
-// DefaultConfig returns a Config populated with representative example values
-// (the telegram bot setup from the README). main.go builds its Config from
-// required flags instead; DefaultConfig exists so tests produce golden output
-// that matches a realistic invocation without re-stating every field.
-func DefaultConfig() *Config {
-	mustIdent := func(raw string) protogen.GoIdent {
-		id, err := ParseGoIdent(raw)
-		if err != nil {
-			panic(err)
-		}
-		return id
+// Validate checks required identifiers and the optional extra-data pair.
+func (c *Config) Validate() error {
+	if c == nil {
+		return errors.New("config is required")
 	}
+	if c.OptionsKey == "" {
+		return errors.New("options_key is required")
+	}
+	if c.RequestType.GoImportPath == "" || c.RequestType.GoName == "" {
+		return errors.New("request_model is required (format: 'import/path;ModelName')")
+	}
+	if c.ResponseType.GoImportPath == "" || c.ResponseType.GoName == "" {
+		return errors.New("response_model is required (format: 'import/path;ModelName')")
+	}
+	hasExtraType := c.ExtraType.GoImportPath != "" || c.ExtraType.GoName != ""
+	hasExtraConstructor := c.ExtraConstructor.GoImportPath != "" || c.ExtraConstructor.GoName != ""
+	if hasExtraType && (c.ExtraType.GoImportPath == "" || c.ExtraType.GoName == "") {
+		return errors.New("extra_data_model is required (format: 'import/path;ModelName')")
+	}
+	if hasExtraConstructor && (c.ExtraConstructor.GoImportPath == "" || c.ExtraConstructor.GoName == "") {
+		return errors.New("extra_data_constructor is required (format: 'import/path;Ident')")
+	}
+	if hasExtraConstructor && !hasExtraType {
+		return errors.New("extra_data_model is required when extra_data_constructor is specified")
+	}
+	if hasExtraType && !hasExtraConstructor {
+		return errors.New("extra_data_constructor is required when extra_data_model is specified")
+	}
+	return nil
+}
+
+// DefaultConfig returns the plugin's real defaults. Required request and
+// response models remain unset until supplied by the caller.
+func DefaultConfig() *Config {
 	return &Config{
-		OptionsKey:       DefaultOptionsKey,
-		RequestType:      mustIdent(exampleRequestType),
-		ResponseType:     mustIdent(exampleResponseType),
-		ExtraType:        mustIdent(exampleExtraType),
-		ExtraConstructor: mustIdent(exampleExtraConstructor),
+		OptionsKey: DefaultOptionsKey,
 	}
 }

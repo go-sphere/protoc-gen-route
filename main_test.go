@@ -86,17 +86,17 @@ func TestExtractConfig(t *testing.T) {
 
 func TestVersionFlag(t *testing.T) {
 	binPath := filepath.Join(t.TempDir(), "protoc-gen-route")
-	build := exec.Command("go", "build", "-o", binPath, ".")
+	build := exec.CommandContext(t.Context(), "go", "build", "-o", binPath, ".")
 	if output, err := build.CombinedOutput(); err != nil {
 		t.Fatalf("build plugin: %v\n%s", err, output)
 	}
 
-	command := exec.Command(binPath, "-version")
+	command := exec.CommandContext(t.Context(), binPath, "-version")
 	output, err := command.CombinedOutput()
 	if err != nil {
 		t.Fatalf("run -version: %v\n%s", err, output)
 	}
-	if got, want := string(output), "protoc-gen-route 0.0.1\n"; got != want {
+	if got, want := string(output), "protoc-gen-route "+version+"\n"; got != want {
 		t.Errorf("version output = %q, want %q", got, want)
 	}
 }
@@ -115,6 +115,6 @@ func resetConfigFlags() {
 	*responseModel = ""
 	*extraDataModel = ""
 	*extraDataConstructor = ""
-	*optionsKey = "route"
+	*optionsKey = route.DefaultOptionsKey
 	*templateFile = ""
 }

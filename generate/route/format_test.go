@@ -99,13 +99,13 @@ func TestImportKeepAlives(t *testing.T) {
 
 	t.Run("dedup by import path", func(t *testing.T) {
 		// All four idents share one import path, so only the first survives.
-		conf := DefaultConfig()
-		newRefs, exprRefs := importKeepAlives(conf)
+		cfg := testConfig()
+		newRefs, exprRefs := importKeepAlives(cfg)
 		if len(newRefs) != 1 {
 			t.Fatalf("newRefs = %v, want exactly 1", newRefs)
 		}
-		if newRefs[0] != conf.RequestType {
-			t.Errorf("newRefs[0] = %v, want RequestType %v", newRefs[0], conf.RequestType)
+		if newRefs[0] != cfg.RequestType {
+			t.Errorf("newRefs[0] = %v, want RequestType %v", newRefs[0], cfg.RequestType)
 		}
 		if len(exprRefs) != 0 {
 			t.Errorf("exprRefs = %v, want empty (constructor shares the type import path)", exprRefs)
@@ -113,28 +113,28 @@ func TestImportKeepAlives(t *testing.T) {
 	})
 
 	t.Run("distinct import paths", func(t *testing.T) {
-		conf := &Config{
+		cfg := &Config{
 			RequestType:      ident("example.com/req", "Req"),
 			ResponseType:     ident("example.com/resp", "Resp"),
 			ExtraType:        ident("example.com/extra", "Extra"),
 			ExtraConstructor: ident("example.com/ctor", "NewExtra"),
 		}
-		newRefs, exprRefs := importKeepAlives(conf)
+		newRefs, exprRefs := importKeepAlives(cfg)
 		if len(newRefs) != 3 {
 			t.Errorf("newRefs = %v, want 3", newRefs)
 		}
-		if len(exprRefs) != 1 || exprRefs[0] != conf.ExtraConstructor {
+		if len(exprRefs) != 1 || exprRefs[0] != cfg.ExtraConstructor {
 			t.Errorf("exprRefs = %v, want [NewExtra]", exprRefs)
 		}
 	})
 
 	t.Run("empty idents skipped", func(t *testing.T) {
 		// No extra type/constructor: nothing for the extra slots, no var _ = new().
-		conf := &Config{
+		cfg := &Config{
 			RequestType:  ident("example.com/req", "Req"),
 			ResponseType: ident("example.com/resp", "Resp"),
 		}
-		newRefs, exprRefs := importKeepAlives(conf)
+		newRefs, exprRefs := importKeepAlives(cfg)
 		if len(newRefs) != 2 {
 			t.Errorf("newRefs = %v, want 2", newRefs)
 		}

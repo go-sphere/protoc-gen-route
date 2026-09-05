@@ -9,10 +9,12 @@ import (
 	"google.golang.org/protobuf/types/pluginpb"
 )
 
+const version = "0.0.1"
+
 var (
 	showVersion = flag.Bool("version", false, "print the version and exit")
 
-	optionsKey   = flag.String("options_key", "route", "options key in proto")
+	optionsKey   = flag.String("options_key", route.DefaultOptionsKey, "options key in proto")
 	templateFile = flag.String("template_file", "", "template file, if not set, use default template")
 
 	requestModel   = flag.String("request_model", "", "request model")
@@ -25,81 +27,70 @@ var (
 func main() {
 	flag.Parse()
 	if *showVersion {
-		fmt.Printf("protoc-gen-route %v\n", "0.0.1")
+		fmt.Printf("protoc-gen-route %s\n", version)
 		return
 	}
 	protogen.Options{
 		ParamFunc: flag.CommandLine.Set,
-	}.Run(func(gen *protogen.Plugin) error {
-		conf, err := extractConfig()
-		if err != nil {
+	}.Run(run)
+}
+
+func run(plugin *protogen.Plugin) error {
+	plugin.SupportedFeatures = uint64(pluginpb.CodeGeneratorResponse_FEATURE_PROTO3_OPTIONAL)
+	cfg, err := extractConfig()
+	if err != nil {
+		return err
+	}
+	generator, err := route.NewGenerator(cfg)
+	if err != nil {
+		return err
+	}
+	for _, file := range plugin.Files {
+		if !file.Generate {
+			continue
+		}
+		if _, err := generator.GenerateFile(plugin, file); err != nil {
 			return err
 		}
-		gen.SupportedFeatures = uint64(pluginpb.CodeGeneratorResponse_FEATURE_PROTO3_OPTIONAL)
-		err = route.ReplaceTemplateIfNeed(conf.TemplateFile)
-		if err != nil {
-			return err
-		}
-		for _, f := range gen.Files {
-			if !f.Generate {
-				continue
-			}
-			_, gErr := route.GenerateFile(gen, f, conf)
-			if gErr != nil {
-				return gErr
-			}
-		}
-		return nil
-	})
+	}
+	return nil
 }
 
 func extractConfig() (*route.Config, error) {
-	if *requestModel == "" {
-		return nil, fmt.Errorf("request_model is required (format: 'import/path;ModelName')")
-	}
-	_requestModel, err := route.ParseGoIdent(*requestModel)
-	if err != nil {
-		return nil, err
-	}
-	if *responseModel == "" {
-		return nil, fmt.Errorf("response_model is required (format: 'import/path;ModelName')")
-	}
-	_responseModel, err := route.ParseGoIdent(*responseModel)
-	if err != nil {
-		return nil, err
-	}
-	if *optionsKey == "" {
-		return nil, fmt.Errorf("options_key is required")
-	}
+	cfg := route.DefaultConfig()
+	cfg.OptionsKey = *optionsKey
+	cfg.TemplateFile = *templateFile
 
-	conf := &route.Config{
-		OptionsKey:   *optionsKey,
-		TemplateFile: *templateFile,
-
-		RequestType:  _requestModel,
-		ResponseType: _responseModel,
-	}
-
-	if *extraDataModel == "" {
-		if *extraDataConstructor != "" {
-			return nil, fmt.Errorf("extra_data_model is required when extra_data_constructor is specified")
+	if *requestModel != "" {
+		ident, err := route.ParseGoIdent(*requestModel)
+		if err != nil {
+			return nil, err
 		}
-		return conf, nil
+		cfg.RequestType = ident
 	}
-	if *extraDataConstructor == "" {
-		return nil, fmt.Errorf("extra_data_constructor is required when extra_data_model is specified")
+	if *responseModel != "" {
+		ident, err := route.ParseGoIdent(*responseModel)
+		if err != nil {
+			return nil, err
+		}
+		cfg.ResponseType = ident
 	}
-
-	_extraDataModel, err := route.ParseGoIdent(*extraDataModel)
-	if err != nil {
+	if *extraDataModel != "" {
+		ident, err := route.ParseGoIdent(*extraDataModel)
+		if err != nil {
+			return nil, err
+		}
+		cfg.ExtraType = ident
+	}
+	if *extraDataConstructor != "" {
+		ident, err := route.ParseGoIdent(*extraDataConstructor)
+		if err != nil {
+			return nil, err
+		}
+		cfg.ExtraConstructor = ident
+	}
+	if err := cfg.Validate(); err != nil {
 		return nil, err
 	}
-	_extraDataConstructor, err := route.ParseGoIdent(*extraDataConstructor)
-	if err != nil {
-		return nil, err
-	}
-	conf.ExtraType = _extraDataModel
-	conf.ExtraConstructor = _extraDataConstructor
-
-	return conf, nil
+	return cfg, nil
 }

@@ -1,7 +1,9 @@
+// Package template renders the routing scaffolding emitted by protoc-gen-route.
 package template
 
 import (
 	_ "embed"
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -9,7 +11,7 @@ import (
 )
 
 //go:embed template.tmpl
-var routeTemplate string
+var defaultTemplate string
 
 /*
 service MenuService {
@@ -32,6 +34,7 @@ service MenuService {
 }
 */
 
+// ServiceDesc is the template model for one generated route service.
 type ServiceDesc struct {
 	OptionsKey string // bot
 
@@ -44,6 +47,7 @@ type ServiceDesc struct {
 	Package *PackageDesc
 }
 
+// MethodDesc is the template model for one generated route method.
 type MethodDesc struct {
 	Name         string // rpc method name: UpdateCount
 	OriginalName string // service and method name: MenuServiceUpdateCount
@@ -56,6 +60,8 @@ type MethodDesc struct {
 	Extra map[string]string
 }
 
+// PackageDesc contains the qualified package-level identifiers used by a
+// generated route service.
 type PackageDesc struct {
 	RequestType      string
 	ResponseType     string
@@ -63,32 +69,41 @@ type PackageDesc struct {
 	NewExtraDataFunc string
 }
 
-func (s *ServiceDesc) Execute() (string, error) {
+// Renderer owns a parsed route generation template. It is immutable after
+// construction and safe to reuse for every file in one plugin invocation.
+type Renderer struct {
+	template *template.Template
+}
+
+// NewRenderer loads and parses the embedded template, or the file at path when
+// path is non-empty.
+func NewRenderer(path string) (*Renderer, error) {
+	source := defaultTemplate
+	if path != "" {
+		raw, err := os.ReadFile(path)
+		if err != nil {
+			return nil, fmt.Errorf("read template %q: %w", path, err)
+		}
+		source = string(raw)
+	}
+	tmpl, err := template.New("route").Funcs(template.FuncMap{
+		"goString": strconv.Quote,
+	}).Parse(source)
+	if err != nil {
+		return nil, fmt.Errorf("parse template: %w", err)
+	}
+	return &Renderer{template: tmpl}, nil
+}
+
+// Execute renders a service descriptor.
+func (r *Renderer) Execute(s *ServiceDesc) (string, error) {
 	s.MethodSets = make(map[string]*MethodDesc)
 	for _, m := range s.Methods {
 		s.MethodSets[m.Name] = m
 	}
 	var buf strings.Builder
-	tmpl, err := template.New("route").Funcs(template.FuncMap{
-		"goString": strconv.Quote,
-	}).Parse(routeTemplate)
-	if err != nil {
-		return "", err
-	}
-	err = tmpl.Execute(&buf, s)
-	if err != nil {
-		return "", err
+	if err := r.template.Execute(&buf, s); err != nil {
+		return "", fmt.Errorf("execute template: %w", err)
 	}
 	return buf.String(), nil
-}
-
-func ReplaceTemplateIfNeed(path string) error {
-	if path != "" {
-		raw, err := os.ReadFile(path)
-		if err != nil {
-			return err
-		}
-		routeTemplate = string(raw)
-	}
-	return nil
 }
