@@ -1,6 +1,6 @@
 module github.com/go-sphere/protoc-gen-route
 
-go 1.23.0
+go 1.26.8
 
 require (
 	github.com/go-sphere/options v0.0.1
