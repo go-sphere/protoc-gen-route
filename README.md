@@ -34,13 +34,14 @@ deps:
 The behavior of `protoc-gen-route` can be customized with the following parameters:
 
 - **`version`**: Print the current plugin version and exit. (Default: `false`)
-- **`options_key`**: The key for the option extension in your proto file that contains routing information. (Default: `route`)
-- **`file_suffix`**: The suffix for the generated files. (Default: `_route.pb.go`)
+- **`options_key`**: The key for the option extension in your proto file that contains routing information. Only methods carrying an option entry with this key are generated; a file whose services have no matching entry produces no output. (Default: `route`)
 - **`template_file`**: Path to a custom Go template file. If not provided, the default internal template is used.
-- **`request_model`**: (Required) The fully qualified Go type for the request model (e.g., `github.com/gin-gonic/gin.Context`).
-- **`response_model`**: (Required) The fully qualified Go type for the response model.
-- **`extra_data_model`**: The fully qualified Go type for an additional data model to be used in the template.
-- **`extra_data_constructor`**: A function that constructs and returns a pointer to the `extra_data_model`. (Required if `extra_data_model` is set).
+- **`request_model`**: (Required) The fully qualified Go type for the request model, in `import/path;Ident` form (e.g., `github.com/gin-gonic/gin;Context`).
+- **`response_model`**: (Required) The fully qualified Go type for the response model, in `import/path;Ident` form (e.g., `net/http;ResponseWriter`).
+- **`extra_data_model`**: The fully qualified Go type for an additional data model to be used in the template, in `import/path;Ident` form.
+- **`extra_data_constructor`**: A function that constructs and returns a pointer to the `extra_data_model`, in `import/path;Ident` form. (Required if `extra_data_model` is set).
+
+Each input file is generated as `<proto file prefix>.<options_key>.pb.go`, with the key lower-cased (e.g. `options_key=http` on `bot/v1/service.proto` produces `bot/v1/service.http.pb.go`). Running the plugin several times with different keys therefore yields distinct files without any suffix configuration.
 
 ## Usage with Buf
 
@@ -62,7 +63,6 @@ plugins:
     opt:
       - paths=source_relative
       - options_key=bot
-      - file_suffix=_bot.pb.go
       - request_model=github.com/go-sphere/telegram-bot/telegram;Update
       - response_model=github.com/go-sphere/telegram-bot/telegram;Message
       - extra_data_model=github.com/go-sphere/telegram-bot/telegram;MethodExtraData
@@ -345,7 +345,6 @@ plugins:
     opt:
       - paths=source_relative
       - options_key=http
-      - file_suffix=_http.pb.go
       - request_model=github.com/gin-gonic/gin;Context
       - response_model=net/http;ResponseWriter
 ```
@@ -359,7 +358,6 @@ plugins:
     opt:
       - paths=source_relative
       - options_key=bot
-      - file_suffix=_bot.pb.go
       - request_model=github.com/go-sphere/telegram-bot/telegram;Update
       - response_model=github.com/go-sphere/telegram-bot/telegram;Message
       - extra_data_model=github.com/go-sphere/telegram-bot/telegram;MethodExtraData
@@ -375,7 +373,6 @@ plugins:
     opt:
       - paths=source_relative
       - options_key=grpc
-      - file_suffix=_grpc.pb.go
       - request_model=context;Context
       - response_model=google.golang.org/grpc;ServerStream
 ```
@@ -416,14 +413,12 @@ plugins:
     out: api
     opt:
       - options_key=http
-      - file_suffix=_http.pb.go
       - request_model=github.com/gin-gonic/gin;Context
       - response_model=interface{}
   - local: protoc-gen-route
     out: api
     opt:
       - options_key=bot
-      - file_suffix=_bot.pb.go
       - request_model=github.com/go-sphere/telegram-bot/telegram;Update
       - response_model=github.com/go-sphere/telegram-bot/telegram;Message
 ```
