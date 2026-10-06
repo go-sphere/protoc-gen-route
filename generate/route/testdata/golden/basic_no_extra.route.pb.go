@@ -7,7 +7,7 @@ package basicv1
 
 import (
 	context "context"
-	telegram "github.com/go-sphere/sphere/social/telegram"
+	telegram "github.com/go-sphere/telegram-bot/telegram"
 )
 
 var _ = new(context.Context)

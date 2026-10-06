@@ -7,10 +7,10 @@ import (
 )
 
 const (
-	testRequestType      = "github.com/go-sphere/sphere/social/telegram;Update"
-	testResponseType     = "github.com/go-sphere/sphere/social/telegram;Message"
-	testExtraType        = "github.com/go-sphere/sphere/social/telegram;MethodExtraData"
-	testExtraConstructor = "github.com/go-sphere/sphere/social/telegram;NewMethodExtraData"
+	testRequestType      = "github.com/go-sphere/telegram-bot/telegram;Update"
+	testResponseType     = "github.com/go-sphere/telegram-bot/telegram;Message"
+	testExtraType        = "github.com/go-sphere/telegram-bot/telegram;MethodExtraData"
+	testExtraConstructor = "github.com/go-sphere/telegram-bot/telegram;NewMethodExtraData"
 )
 
 func TestParseGoIdent(t *testing.T) {
