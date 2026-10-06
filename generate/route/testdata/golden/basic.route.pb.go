@@ -14,8 +14,8 @@ import (
 var _ = new(context.Context)
 var _ = new(telegram.Update)
 
-const OperationRouteMenuServiceGetMenu = "/testdata.basic.v1.MenuService/GetMenu"
 const OperationRouteMenuServiceUpdateCount = "/testdata.basic.v1.MenuService/UpdateCount"
+const OperationRouteMenuServiceGetMenu = "/testdata.basic.v1.MenuService/GetMenu"
 
 var ExtraRouteDataMenuServiceUpdateCount = telegram.NewMethodExtraData(map[string]string{
 	"callback_query": "start",
@@ -33,24 +33,24 @@ func GetExtraRouteDataByMenuServiceOperation(operation string) *telegram.MethodE
 
 func GetAllRouteMenuServiceOperations() []string {
 	return []string{
-		OperationRouteMenuServiceGetMenu,
 		OperationRouteMenuServiceUpdateCount,
+		OperationRouteMenuServiceGetMenu,
 	}
 }
 
 type MenuServiceRouteServer interface {
-	// GetMenu GetMenu returns the menu and carries a route rule without extra data.
-	GetMenu(context.Context, *GetMenuRequest) (*GetMenuResponse, error)
 	// UpdateCount UpdateCount updates the menu counter.
 	// It is triggered by the start command.
 	UpdateCount(context.Context, *UpdateCountRequest) (*UpdateCountResponse, error)
+	// GetMenu GetMenu returns the menu and carries a route rule without extra data.
+	GetMenu(context.Context, *GetMenuRequest) (*GetMenuResponse, error)
 }
 
 type MenuServiceRouteCodec interface {
-	DecodeGetMenuRequest(ctx context.Context, request *telegram.Update) (*GetMenuRequest, error)
-	EncodeGetMenuResponse(ctx context.Context, response *GetMenuResponse) (*telegram.Message, error)
 	DecodeUpdateCountRequest(ctx context.Context, request *telegram.Update) (*UpdateCountRequest, error)
 	EncodeUpdateCountResponse(ctx context.Context, response *UpdateCountResponse) (*telegram.Message, error)
+	DecodeGetMenuRequest(ctx context.Context, request *telegram.Update) (*GetMenuRequest, error)
+	EncodeGetMenuResponse(ctx context.Context, response *GetMenuResponse) (*telegram.Message, error)
 }
 
 func _MenuService_UpdateCount0_Route_Handler(srv MenuServiceRouteServer, codec MenuServiceRouteCodec, render func(ctx context.Context, request *telegram.Update, msg *telegram.Message) error) func(ctx context.Context, request *telegram.Update) error {
