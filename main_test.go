@@ -38,9 +38,10 @@ func TestExtractConfig(t *testing.T) {
 		{
 			name: "minimal", request: "net/http;Request", response: "net/http;Response", key: "route",
 			want: &route.Config{
-				OptionsKey:   "route",
-				RequestType:  mustGoIdent(t, "net/http;Request"),
-				ResponseType: mustGoIdent(t, "net/http;Response"),
+				OptionsKey:    "route",
+				RequestType:   mustGoIdent(t, "net/http;Request"),
+				ResponseType:  mustGoIdent(t, "net/http;Response"),
+				PluginVersion: "v" + version,
 			},
 		},
 		{
@@ -52,6 +53,7 @@ func TestExtractConfig(t *testing.T) {
 				ResponseType:     mustGoIdent(t, "net/http;Response"),
 				ExtraType:        mustGoIdent(t, "example.com/data;Data"),
 				ExtraConstructor: mustGoIdent(t, "example.com/data;NewData"),
+				PluginVersion:    "v" + version,
 			},
 		},
 	}

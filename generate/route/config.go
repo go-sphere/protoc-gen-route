@@ -25,6 +25,12 @@ type Config struct {
 	ResponseType     protogen.GoIdent
 	ExtraType        protogen.GoIdent
 	ExtraConstructor protogen.GoIdent
+
+	// PluginVersion is recorded in the generated file header
+	// ("// - protoc-gen-route <PluginVersion>"). main.go sets it from the
+	// binary's version; an empty value renders as "(unknown)". It does not
+	// affect anything but the header.
+	PluginVersion string
 }
 
 // fileConfig holds the per-file generation state derived from Config. It is

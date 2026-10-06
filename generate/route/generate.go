@@ -53,7 +53,7 @@ func (g *Generator) GenerateFile(plugin *protogen.Plugin, file *protogen.File) (
 	}
 	filename := file.GeneratedFilenamePrefix + "." + strings.ToLower(g.cfg.OptionsKey) + ".pb.go"
 	generated := plugin.NewGeneratedFile(filename, file.GoImportPath)
-	generateFileHeader(plugin, file, generated)
+	generateFileHeader(plugin, file, generated, g.cfg.PluginVersion)
 	if err := generateFileContent(file, generated, g.cfg, g.renderer); err != nil {
 		return nil, err
 	}

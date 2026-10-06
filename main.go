@@ -59,6 +59,7 @@ func run(plugin *protogen.Plugin) error {
 func extractConfig() (*route.Config, error) {
 	cfg := route.DefaultConfig()
 	cfg.OptionsKey = *optionsKey
+	cfg.PluginVersion = "v" + version
 	cfg.TemplateFile = *templateFile
 
 	if *requestModel != "" {
