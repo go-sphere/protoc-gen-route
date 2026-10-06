@@ -10,12 +10,12 @@
 {{$handlerType := printf "func(ctx context.Context, request *%s) error" $requestType}}
 {{$renderType := printf "func(ctx context.Context, request *%s, msg *%s) error" $requestType $responseType}}
 
-{{- range .DistinctMethods}}
+{{- range .Methods}}
 const Operation{{$optionsKey}}{{$svrType}}{{.OriginalName}} = {{goString (printf "/%s/%s" $svrName .OriginalName)}}
 {{- end}}
 
 {{- if ne $extraDataType ""}}
-{{- range .DistinctMethods}}
+{{- range .Methods}}
     {{- if .Extra}}
 var Extra{{$optionsKey}}Data{{$svrType}}{{.Name}} = {{$newExtraDataFunc}}(map[string]string{
     {{- range $key, $value := .Extra}}
@@ -29,7 +29,7 @@ var Extra{{$optionsKey}}Data{{$svrType}}{{.Name}} = {{$newExtraDataFunc}}(map[st
 {{- if ne $extraDataType ""}}
 func GetExtra{{$optionsKey}}DataBy{{$svrType}}Operation(operation string) *{{$extraDataType}} {
     switch operation {
-    {{- range .DistinctMethods}}
+    {{- range .Methods}}
     {{- if .Extra}}
     case Operation{{$optionsKey}}{{$svrType}}{{.OriginalName}}:
         return Extra{{$optionsKey}}Data{{$svrType}}{{.Name}}
@@ -43,14 +43,14 @@ func GetExtra{{$optionsKey}}DataBy{{$svrType}}Operation(operation string) *{{$ex
 
 func GetAll{{$optionsKey}}{{$svrType}}Operations() []string {
     return []string{
-    {{- range .DistinctMethods}}
+    {{- range .Methods}}
     Operation{{$optionsKey}}{{$svrType}}{{.OriginalName}},
     {{- end}}
     }
 }
 
 type {{.ServiceType}}{{$optionsKey}}Server interface {
-{{- range .DistinctMethods}}
+{{- range .Methods}}
 	{{- if ne .Comment ""}}
 	{{.Comment}}
 	{{- end}}
@@ -59,7 +59,7 @@ type {{.ServiceType}}{{$optionsKey}}Server interface {
 }
 
 type {{.ServiceType}}{{$optionsKey}}Codec interface {
-{{- range .DistinctMethods}}
+{{- range .Methods}}
     Decode{{.Name}}Request(ctx context.Context, request *{{$requestType}}) (*{{.Request}}, error)
     Encode{{.Name}}Response(ctx context.Context, response *{{.Reply}}) (*{{$responseType}}, error)
 {{- end}}
