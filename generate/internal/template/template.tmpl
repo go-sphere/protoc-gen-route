@@ -11,7 +11,7 @@
 {{$renderType := printf "func(ctx context.Context, request *%s, msg *%s) error" $requestType $responseType}}
 
 {{- range .MethodSets}}
-const Operation{{$optionsKey}}{{$svrType}}{{.OriginalName}} = "/{{$svrName}}/{{.OriginalName}}"
+const Operation{{$optionsKey}}{{$svrType}}{{.OriginalName}} = {{goString (printf "/%s/%s" $svrName .OriginalName)}}
 {{- end}}
 
 {{- if ne $extraDataType ""}}
