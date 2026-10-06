@@ -41,6 +41,7 @@ func generateService(g *protogen.GeneratedFile, service *protogen.Service, cfg *
 	if len(desc.Methods) == 0 {
 		return nil
 	}
+	desc.MethodSets = template.IndexMethods(desc.Methods)
 	content, err := renderer.Execute(desc)
 	if err != nil {
 		return err

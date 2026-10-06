@@ -12,19 +12,21 @@ func TestExecuteQuotesExtra(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewRenderer: %v", err)
 	}
+	methods := []*MethodDesc{{
+		Name:         "Start",
+		OriginalName: "Start",
+		Request:      "StartRequest",
+		Reply:        "StartResponse",
+		Extra: map[string]string{
+			`key "quoted"`: "line1\nline2",
+		},
+	}}
 	out, err := renderer.Execute(&ServiceDesc{
 		OptionsKey:  "Bot",
 		ServiceType: "Menu",
 		ServiceName: "bot.v1.Menu",
-		Methods: []*MethodDesc{{
-			Name:         "Start",
-			OriginalName: "Start",
-			Request:      "StartRequest",
-			Reply:        "StartResponse",
-			Extra: map[string]string{
-				`key "quoted"`: "line1\nline2",
-			},
-		}},
+		Methods:     methods,
+		MethodSets:  IndexMethods(methods),
 		Package: &PackageDesc{
 			RequestType:      "Request",
 			ResponseType:     "Response",
@@ -69,5 +71,33 @@ func TestNewRendererIsIsolated(t *testing.T) {
 	}
 	if strings.Contains(defaultOut, "// custom") {
 		t.Fatal("custom renderer must not mutate the embedded default renderer")
+	}
+}
+
+func TestExecuteDoesNotMutateInput(t *testing.T) {
+	renderer, err := NewRenderer("")
+	if err != nil {
+		t.Fatalf("NewRenderer: %v", err)
+	}
+	desc := &ServiceDesc{
+		ServiceType: "Menu",
+		Methods:     []*MethodDesc{{Name: "Start"}},
+		Package:     &PackageDesc{},
+	}
+	if _, err := renderer.Execute(desc); err != nil {
+		t.Fatalf("Execute: %v", err)
+	}
+	if desc.MethodSets != nil {
+		t.Errorf("Execute must not populate MethodSets, got %v", desc.MethodSets)
+	}
+}
+
+func TestIndexMethodsLastWins(t *testing.T) {
+	first := &MethodDesc{Name: "Start", Num: 0}
+	second := &MethodDesc{Name: "Start", Num: 1}
+	other := &MethodDesc{Name: "Stop"}
+	sets := IndexMethods([]*MethodDesc{first, second, other})
+	if len(sets) != 2 || sets["Start"] != second || sets["Stop"] != other {
+		t.Errorf("unexpected index: %v", sets)
 	}
 }
