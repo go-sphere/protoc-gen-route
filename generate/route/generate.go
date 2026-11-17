@@ -48,26 +48,28 @@ func GenerateFile(plugin *protogen.Plugin, file *protogen.File, cfg *Config) (*p
 // returns (nil, nil) when the file has no service method carrying a matching
 // options rule.
 func (g *Generator) GenerateFile(plugin *protogen.Plugin, file *protogen.File) (*protogen.GeneratedFile, error) {
-	if len(file.Services) == 0 || !hasOptionsRule(file.Services, g.cfg.OptionsKey) {
+	matched := collectMatchedServices(file.Services, g.cfg.OptionsKey)
+	if len(matched) == 0 {
 		return nil, nil
 	}
 	filename := file.GeneratedFilenamePrefix + "." + strings.ToLower(g.cfg.OptionsKey) + ".pb.go"
 	generated := plugin.NewGeneratedFile(filename, file.GoImportPath)
 	generateFileHeader(plugin, file, generated, g.cfg.PluginVersion)
-	if err := generateFileContent(file, generated, g.cfg, g.renderer); err != nil {
+	if err := generateFileContent(matched, generated, g.cfg, g.renderer); err != nil {
 		return nil, err
 	}
 	return generated, nil
 }
 
-func generateFileContent(file *protogen.File, g *protogen.GeneratedFile, cfg *Config, renderer *template.Renderer) error {
-	if len(file.Services) == 0 {
+func generateFileContent(matched []matchedService, g *protogen.GeneratedFile, cfg *Config, renderer *template.Renderer) error {
+	if len(matched) == 0 {
 		return nil
 	}
-	generateGoImport(g, cfg)
+	stdContextType := generateGoImport(g, cfg)
 	packageDesc := &template.PackageDesc{
-		RequestType:  g.QualifiedGoIdent(cfg.RequestType),
-		ResponseType: g.QualifiedGoIdent(cfg.ResponseType),
+		StdContextType: stdContextType,
+		RequestType:    g.QualifiedGoIdent(cfg.RequestType),
+		ResponseType:   g.QualifiedGoIdent(cfg.ResponseType),
 	}
 	if cfg.ExtraType.GoName != "" {
 		packageDesc.ExtraDataType = g.QualifiedGoIdent(cfg.ExtraType)
@@ -78,8 +80,8 @@ func generateFileContent(file *protogen.File, g *protogen.GeneratedFile, cfg *Co
 		packageDesc: packageDesc,
 		methodSets:  make(map[string]int),
 	}
-	for _, service := range file.Services {
-		if err := generateService(g, service, fileCfg, renderer); err != nil {
+	for _, svc := range matched {
+		if err := generateService(g, svc, fileCfg, renderer); err != nil {
 			return err
 		}
 	}

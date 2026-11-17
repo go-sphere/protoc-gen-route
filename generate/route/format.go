@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 	"unicode"
+	"unicode/utf8"
 
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/types/pluginpb"
@@ -102,7 +103,9 @@ func pascalCase(s string) string {
 			continue
 		}
 		word = strings.ToLower(word)
-		result.WriteString(string(unicode.ToUpper(rune(word[0]))) + word[1:])
+		r, size := utf8.DecodeRuneInString(word)
+		result.WriteRune(unicode.ToUpper(r))
+		result.WriteString(word[size:])
 	}
 	return result.String()
 }

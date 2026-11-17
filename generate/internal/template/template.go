@@ -67,6 +67,7 @@ type MethodDesc struct {
 // PackageDesc contains the qualified package-level identifiers used by a
 // generated route service.
 type PackageDesc struct {
+	StdContextType   string
 	RequestType      string
 	ResponseType     string
 	ExtraDataType    string

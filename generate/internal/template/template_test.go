@@ -101,3 +101,45 @@ func TestIndexMethodsLastWins(t *testing.T) {
 		t.Errorf("unexpected index: %v", sets)
 	}
 }
+
+func TestExecuteStdContextType(t *testing.T) {
+	renderer, err := NewRenderer("")
+	if err != nil {
+		t.Fatalf("NewRenderer: %v", err)
+	}
+	methods := []*MethodDesc{{
+		Name:         "Start",
+		OriginalName: "Start",
+		Request:      "StartRequest",
+		Reply:        "StartResponse",
+	}}
+	out, err := renderer.Execute(&ServiceDesc{
+		OptionsKey:  "Route",
+		ServiceType: "Menu",
+		ServiceName: "api.v1.Menu",
+		Methods:     methods,
+		MethodSets:  IndexMethods(methods),
+		Package: &PackageDesc{
+			StdContextType: "context1.Context",
+			RequestType:    "Req",
+			ResponseType:   "Resp",
+		},
+	})
+	if err != nil {
+		t.Fatalf("Execute: %v", err)
+	}
+	for _, want := range []string{
+		"Start(context1.Context, *StartRequest) (*StartResponse, error)",
+		"DecodeStartRequest(ctx context1.Context, request *Req) (*StartRequest, error)",
+		"EncodeStartResponse(ctx context1.Context, response *StartResponse) (*Resp, error)",
+		"func(ctx context1.Context, request *Req) error",
+		"func(ctx context1.Context, request *Req, msg *Resp) error",
+	} {
+		if !strings.Contains(out, want) {
+			t.Errorf("output missing %q:\n%s", want, out)
+		}
+	}
+	if strings.Contains(out, "context.Context") {
+		t.Errorf("output unexpectedly contains unqualified context.Context:\n%s", out)
+	}
+}

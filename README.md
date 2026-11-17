@@ -34,7 +34,7 @@ deps:
 The behavior of `protoc-gen-route` can be customized with the following parameters:
 
 - **`version`**: Print the current plugin version and exit. (Default: `false`)
-- **`options_key`**: The key for the option extension in your proto file that contains routing information. Only methods carrying an option entry with this key are generated; a file whose services have no matching entry produces no output. (Default: `route`)
+- **`options_key`**: The key for the option extension in your proto file that contains routing information. Only methods carrying an option entry with this key are generated; a file whose services have no matching entry produces no output. Must form a valid Go identifier suffix and cannot contain `/`, `\`, `.`, or whitespace. (Default: `route`)
 - **`template_file`**: Path to a custom Go template file. If not provided, the default internal template is used.
 - **`request_model`**: (Required) The fully qualified Go type for the request model, in `import/path;Ident` form (e.g., `github.com/gin-gonic/gin;Context`).
 - **`response_model`**: (Required) The fully qualified Go type for the response model, in `import/path;Ident` form (e.g., `net/http;ResponseWriter`).
@@ -399,8 +399,8 @@ plugins:
     out: api
     opt:
       - template_file=custom_route_template.go.tmpl
-      - request_model=MyCustomRequest
-      - response_model=MyCustomResponse
+      - request_model=github.com/example/project/models;CustomRequest
+      - response_model=github.com/example/project/models;CustomResponse
 ```
 
 ### Multiple Route Keys
@@ -414,7 +414,7 @@ plugins:
     opt:
       - options_key=http
       - request_model=github.com/gin-gonic/gin;Context
-      - response_model=interface{}
+      - response_model=net/http;ResponseWriter
   - local: protoc-gen-route
     out: api
     opt:

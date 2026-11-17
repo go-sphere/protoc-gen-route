@@ -2,7 +2,10 @@ package route
 
 import (
 	"errors"
+	"fmt"
+	"go/token"
 	"strings"
+	"unicode"
 
 	"github.com/go-sphere/protoc-gen-route/generate/internal/template"
 	"google.golang.org/protobuf/compiler/protogen"
@@ -51,25 +54,35 @@ func ParseGoIdent(raw string) (protogen.GoIdent, error) {
 	if !ok || importPath == "" || goName == "" || strings.Contains(goName, ";") {
 		return protogen.GoIdent{}, errors.New("invalid GoIdent format, expected 'import/path;Ident'")
 	}
-	return protogen.GoIdent{
+	ident := protogen.GoIdent{
 		GoName:       goName,
 		GoImportPath: protogen.GoImportPath(importPath),
-	}, nil
+	}
+	if err := validateGoIdent(ident); err != nil {
+		return protogen.GoIdent{}, err
+	}
+	return ident, nil
 }
 
-// Validate checks required identifiers and the optional extra-data pair.
+// Validate checks required identifiers, options_key, and the optional extra-data pair.
 func (c *Config) Validate() error {
 	if c == nil {
 		return errors.New("config is required")
 	}
-	if c.OptionsKey == "" {
-		return errors.New("options_key is required")
+	if err := validateOptionsKey(c.OptionsKey); err != nil {
+		return err
 	}
 	if c.RequestType.GoImportPath == "" || c.RequestType.GoName == "" {
 		return errors.New("request_model is required (format: 'import/path;ModelName')")
 	}
+	if err := validateGoIdent(c.RequestType); err != nil {
+		return fmt.Errorf("invalid request_model: %w", err)
+	}
 	if c.ResponseType.GoImportPath == "" || c.ResponseType.GoName == "" {
 		return errors.New("response_model is required (format: 'import/path;ModelName')")
+	}
+	if err := validateGoIdent(c.ResponseType); err != nil {
+		return fmt.Errorf("invalid response_model: %w", err)
 	}
 	hasExtraType := c.ExtraType.GoImportPath != "" || c.ExtraType.GoName != ""
 	hasExtraConstructor := c.ExtraConstructor.GoImportPath != "" || c.ExtraConstructor.GoName != ""
@@ -84,6 +97,59 @@ func (c *Config) Validate() error {
 	}
 	if hasExtraType && !hasExtraConstructor {
 		return errors.New("extra_data_constructor is required when extra_data_model is specified")
+	}
+	if hasExtraType {
+		if err := validateGoIdent(c.ExtraType); err != nil {
+			return fmt.Errorf("invalid extra_data_model: %w", err)
+		}
+	}
+	if hasExtraConstructor {
+		if err := validateGoIdent(c.ExtraConstructor); err != nil {
+			return fmt.Errorf("invalid extra_data_constructor: %w", err)
+		}
+	}
+	return nil
+}
+
+func validateOptionsKey(key string) error {
+	if key == "" {
+		return errors.New("options_key is required")
+	}
+	for _, r := range key {
+		if r == '/' || r == '\\' || r == '.' || unicode.IsSpace(r) {
+			return fmt.Errorf("invalid options_key %q: must not contain '/', '\\\\', '.', or whitespace", key)
+		}
+	}
+	suffix := pascalCase(key)
+	if suffix == "" || !token.IsIdentifier("_"+suffix) {
+		return fmt.Errorf("invalid options_key %q: must form a valid Go identifier suffix", key)
+	}
+	return nil
+}
+
+func validateGoIdent(ident protogen.GoIdent) error {
+	if err := validateImportPath(string(ident.GoImportPath)); err != nil {
+		return err
+	}
+	if !token.IsIdentifier(ident.GoName) {
+		return fmt.Errorf("invalid Go identifier %q", ident.GoName)
+	}
+	return nil
+}
+
+func validateImportPath(importPath string) error {
+	if importPath == "" {
+		return errors.New("import path cannot be empty")
+	}
+	for seg := range strings.SplitSeq(importPath, "/") {
+		if seg == "" || seg == "." || seg == ".." {
+			return fmt.Errorf("invalid segment %q in import path %q", seg, importPath)
+		}
+	}
+	for _, r := range importPath {
+		if !unicode.IsGraphic(r) || unicode.IsSpace(r) || r == '\ufffd' || strings.ContainsRune("!\"#$%&'()*,:;<=>?@[\\]^`{|}", r) {
+			return fmt.Errorf("illegal character %q in import path %q", r, importPath)
+		}
 	}
 	return nil
 }

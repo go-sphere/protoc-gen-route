@@ -88,6 +88,9 @@ func TestPascalCase(t *testing.T) {
 		{"multi word key", "MultiWordKey"},
 		{"ALLCAPS", "Allcaps"},
 		{"__leading", "Leading"},
+		{"über_route", "ÜberRoute"},
+		{"élan-vital", "ÉlanVital"},
+		{"αβ_γδ", "ΑβΓδ"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.in, func(t *testing.T) {

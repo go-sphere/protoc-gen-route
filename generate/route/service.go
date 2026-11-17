@@ -10,23 +10,48 @@ import (
 
 const deprecationComment = "// Deprecated: Do not use."
 
-func generateService(g *protogen.GeneratedFile, service *protogen.Service, cfg *fileConfig, renderer *template.Renderer) error {
-	if service.Desc.Options().(*descriptorpb.ServiceOptions).GetDeprecated() {
-		g.P("//")
-		g.P(deprecationComment)
+type matchedMethod struct {
+	method *protogen.Method
+	rule   *options.KeyValuePair
+}
+
+type matchedService struct {
+	service *protogen.Service
+	methods []matchedMethod
+}
+
+func collectMatchedServices(services []*protogen.Service, key string) []matchedService {
+	var matched []matchedService
+	for _, service := range services {
+		var methods []matchedMethod
+		for _, method := range service.Methods {
+			if rule := extractOptionsRule(method, key); rule != nil {
+				methods = append(methods, matchedMethod{
+					method: method,
+					rule:   rule,
+				})
+			}
+		}
+		if len(methods) > 0 {
+			matched = append(matched, matchedService{
+				service: service,
+				methods: methods,
+			})
+		}
 	}
+	return matched
+}
+
+func generateService(g *protogen.GeneratedFile, svc matchedService, cfg *fileConfig, renderer *template.Renderer) error {
 	desc := &template.ServiceDesc{
 		OptionsKey:  pascalCase(cfg.optionsKey),
-		ServiceType: service.GoName,
-		ServiceName: string(service.Desc.FullName()),
+		ServiceType: svc.service.GoName,
+		ServiceName: string(svc.service.Desc.FullName()),
 		Package:     cfg.packageDesc,
 	}
 
-	for _, method := range service.Methods {
-		rule := extractOptionsRule(method, cfg.optionsKey)
-		if rule == nil {
-			continue
-		}
+	for _, m := range svc.methods {
+		method := m.method
 		desc.Methods = append(desc.Methods, &template.MethodDesc{
 			Name:         method.GoName,
 			OriginalName: string(method.Desc.Name()),
@@ -34,12 +59,16 @@ func generateService(g *protogen.GeneratedFile, service *protogen.Service, cfg *
 			Request:      g.QualifiedGoIdent(method.Input.GoIdent),
 			Reply:        g.QualifiedGoIdent(method.Output.GoIdent),
 			Comment:      formatMethodComment(string(method.Desc.Name()), string(method.Comments.Leading)),
-			Extra:        rule.Extra,
+			Extra:        m.rule.Extra,
 		})
 		cfg.methodSets[method.GoName]++
 	}
 	if len(desc.Methods) == 0 {
 		return nil
+	}
+	if opts, ok := svc.service.Desc.Options().(*descriptorpb.ServiceOptions); ok && opts.GetDeprecated() {
+		g.P("//")
+		g.P(deprecationComment)
 	}
 	desc.MethodSets = template.IndexMethods(desc.Methods)
 	content, err := renderer.Execute(desc)
@@ -49,17 +78,6 @@ func generateService(g *protogen.GeneratedFile, service *protogen.Service, cfg *
 	g.P(content)
 	g.P("\n\n")
 	return nil
-}
-
-func hasOptionsRule(services []*protogen.Service, key string) bool {
-	for _, service := range services {
-		for _, method := range service.Methods {
-			if extractOptionsRule(method, key) != nil {
-				return true
-			}
-		}
-	}
-	return false
 }
 
 func extractOptionsRule(method *protogen.Method, key string) *options.KeyValuePair {
