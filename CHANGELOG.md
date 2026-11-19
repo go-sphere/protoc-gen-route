@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v0.0.3 (2026-11-19)
+
 ### Added
 
 - Support `PackageDesc.StdContextType` so generated files use the `protogen`
